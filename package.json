@@ -1,15 +1,19 @@
 {
   "name": "suvidha_backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Suvidha backend API — Express + MongoDB",
+  "main": "src/server.js",
+  "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
   },
-  "keywords": [],
+  "keywords": ["suvidha", "express", "mongodb"],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
