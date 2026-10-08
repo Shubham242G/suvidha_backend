@@ -13,29 +13,49 @@ dotenv.config();
 const app = express();
 
 app.use(helmet());
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+
+/* ============================================================
+   CORS — supports explicit origins + wildcard vercel.app
+   ============================================================ */
+const explicitOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true; // curl / Postman / server-to-server
+
+  // exact match
+  if (explicitOrigins.includes(origin)) return true;
+
+  // allow any *.vercel.app (covers preview + production)
+  if (/^https:\/\/[a-z0-9-]+(\.vercel\.app)$/i.test(origin)) return true;
+
+  // allow custom domain subdomains later, e.g. suvidha.services
+  if (/^https:\/\/(www\.)?suvidha\.services$/i.test(origin)) return true;
+
+  return false;
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (curl, Postman, server-to-server)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (isAllowedOrigin(origin)) return callback(null, true);
       console.warn(`CORS blocked origin: ${origin}`);
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+
+// Explicitly respond to preflight OPTIONS
+app.options('*', cors());
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -58,6 +78,7 @@ const start = async () => {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`   Environment: ${process.env.NODE_ENV}`);
+    console.log(`   Allowed origins: ${explicitOrigins.join(', ')} (+ *.vercel.app)`);
   });
 };
 
