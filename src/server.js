@@ -15,7 +15,7 @@ const app = express();
 app.use(helmet());
 
 /* ============================================================
-   CORS — supports explicit origins + wildcard vercel.app
+   CORS — explicit origins + any *.vercel.app
    ============================================================ */
 const explicitOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
   .split(',')
@@ -25,13 +25,13 @@ const explicitOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
 const isAllowedOrigin = (origin) => {
   if (!origin) return true; // curl / Postman / server-to-server
 
-  // exact match
+  // exact match against CLIENT_URL list
   if (explicitOrigins.includes(origin)) return true;
 
-  // allow any *.vercel.app (covers preview + production)
+  // allow any *.vercel.app (preview + production URLs)
   if (/^https:\/\/[a-z0-9-]+(\.vercel\.app)$/i.test(origin)) return true;
 
-  // allow custom domain subdomains later, e.g. suvidha.services
+  // allow custom domain
   if (/^https:\/\/(www\.)?suvidha\.services$/i.test(origin)) return true;
 
   return false;
@@ -50,8 +50,7 @@ app.use(
   })
 );
 
-// Explicitly respond to preflight OPTIONS
-app.options('*', cors());
+// ❌ DO NOT add app.options('*', cors()) — Express 5 rejects '*' as a path
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
