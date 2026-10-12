@@ -1,4 +1,4 @@
-import Document from '../models/document.js';
+import Document from '../models/Document.js';
 import { storeFileAndReturnNameBase64 } from '../utils/fileSystem.js';
 
 const fileFields = [
